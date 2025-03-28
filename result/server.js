@@ -4,7 +4,7 @@ var express = require('express'),
     cookieParser = require('cookie-parser'),
     app = express(),
     server = require('http').Server(app),
-	path = require('path'),  //多了這行
+	//path = require('path'),  
     io = require('socket.io')(server);
 
 var port = process.env.PORT || 4000;
@@ -19,7 +19,8 @@ io.on('connection', function (socket) {
 });
 
 var pool = new Pool({
-  connectionString: 'postgres://postgres:postgres@db/postgres'
+  connectionString: 'postgres://postgres:postgres@db.liya-voting.local:5432/postgres'
+  //connectionString: 'postgres://postgres:postgres@db/postgres'
 });
 
 async.retry(
@@ -66,13 +67,13 @@ function collectVotesFromResult(result) {
 
 app.use(cookieParser());
 app.use(express.urlencoded());
-app.use(express.static(path.join(__dirname, 'views')));
-//app.use(express.static(__dirname + '/views'));
+//app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(__dirname + '/views'));
 
 //原本是沒有result
 app.get('/', function (req, res) { 
-  //res.sendFile(path.resolve(__dirname + '/views/index.html'));
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  res.sendFile(path.resolve(__dirname + '/views/index.html'));
+  //res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 server.listen(port, function () {
