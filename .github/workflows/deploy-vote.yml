@@ -1,0 +1,43 @@
+name: Build and Push to ECR - Vote
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'vote/**'
+      - '.github/workflows/deploy-vote.yml'
+
+jobs:
+  build-and-push-ecr:
+    name: Build and Push to Amazon ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::027155467263:role/liya-GitHubActionsDeployToECS
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push vote image to ECR
+        env:
+          ECR_REPOSITORY: liya-vote-app
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG ./vote
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY || aws ecr create-repository --repository-name $ECR_REPOSITORY
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGION=us-east-1
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $IMAGE_URI
+          docker push $IMAGE_URI

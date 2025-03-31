@@ -1,4 +1,4 @@
-name: Build Vote
+name: Build and Push Vote Image
 # template source: https://github.com/dockersamples/.github/blob/main/templates/call-docker-build.yaml
 
 on:
